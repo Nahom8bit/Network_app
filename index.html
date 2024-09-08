@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Speed Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body.dark-theme {
+            background-color: #333;
+            color: #fff;
+        }
+        h1 {
+            text-align: center;
+        }
+        .card {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+        .dark-theme .card {
+            background-color: #444;
+        }
+        .speed {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .test-button, .theme-toggle {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: auto;
+            margin: 0;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Network Speed Test</h1>
+    <div id="content">
+        {{if .TestTime.IsZero}}
+            <p>No test results available. Click the button below to run a speed test.</p>
+        {{else}}
+            <div class="card">
+                <p>Download Speed</p>
+                <p class="speed">{{printf "%.2f" .DownloadSpeed}} Mbps</p>
+            </div>
+            <div class="card">
+                <p>Upload Speed</p>
+                <p class="speed">{{printf "%.2f" .UploadSpeed}} Mbps</p>
+            </div>
+            <div class="card">
+                <p><strong>Ping:</strong> {{printf "%.0f" .Ping}} ms</p>
+                <p><strong>Test Time:</strong> {{.TestTime.Format "2006-01-02 15:04:05"}}</p>
+                <p><strong>Server IP:</strong> {{.ServerIP}}</p>
+            </div>
+        {{end}}
+        <a href="/test" class="test-button">Run Speed Test</a>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Dark Mode</button>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('darkTheme', document.body.classList.contains('dark-theme'));
+        }
+
+        // Check for saved theme preference
+        if (localStorage.getItem('darkTheme') === 'true') {
+            document.body.classList.add('dark-theme');
+        }
+
+        // Preserve theme when running the test
+        document.querySelector('.test-button').addEventListener('click', function(e) {
+            e.preventDefault();
+            var isDarkTheme = document.body.classList.contains('dark-theme');
+            fetch('/test')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('content').innerHTML = html;
+                    if (isDarkTheme) {
+                        document.body.classList.add('dark-theme');
+                    }
+                });
+        });
+    </script>
+</body>
+</html>
